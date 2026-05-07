@@ -36,8 +36,12 @@ button{
 
 <h2>Absensi Relawan MBG</h2>
 
+<select id="divisi">
+  <option value="">Pilih Divisi</option>
+</select>
+
 <select id="nama">
-  <option>Loading relawan...</option>
+  <option value="">Pilih Nama</option>
 </select>
 
 <input type="password"
@@ -74,26 +78,32 @@ async function loadRelawan(){
     const data =
       await response.json();
 
-    const select =
-      document.getElementById("nama");
+    window.relawanData = data;
 
-    select.innerHTML =
-      '<option value="">Pilih Nama</option>';
+    // ======================
+    // DIVISI UNIK
+    // ======================
 
-    data.forEach(relawan => {
+    const divisiUnik =
+      [...new Set(
+        data.map(r => r.divisi)
+      )];
+
+    const divisiSelect =
+      document.getElementById("divisi");
+
+    divisiSelect.innerHTML =
+      '<option value="">Pilih Divisi</option>';
+
+    divisiUnik.forEach(divisi => {
 
       const option =
         document.createElement("option");
 
-      option.value =
-        relawan.nama;
+      option.value = divisi;
+      option.text = divisi;
 
-      option.text =
-        relawan.nama +
-        " - " +
-        relawan.divisi;
-
-      select.appendChild(option);
+      divisiSelect.appendChild(option);
 
     });
 
@@ -108,9 +118,41 @@ async function loadRelawan(){
   }
 
 }
-
 loadRelawan();
+document
+.getElementById("divisi")
+.addEventListener("change", function(){
 
+  const divisiDipilih =
+    this.value;
+
+  const namaSelect =
+    document.getElementById("nama");
+
+  namaSelect.innerHTML =
+    '<option value="">Pilih Nama</option>';
+
+  const filtered =
+    window.relawanData.filter(
+      r => r.divisi === divisiDipilih
+    );
+
+  filtered.forEach(relawan => {
+
+    const option =
+      document.createElement("option");
+
+    option.value =
+      relawan.nama;
+
+    option.text =
+      relawan.nama;
+
+    namaSelect.appendChild(option);
+
+  });
+
+});
 
 // ======================
 // ABSEN
