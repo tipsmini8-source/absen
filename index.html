@@ -8,9 +8,9 @@
 
 body{
   font-family: Arial;
-  max-width: 400px;
-  margin: 40px auto;
-  padding: 20px;
+  max-width:400px;
+  margin:40px auto;
+  padding:20px;
 }
 
 select,input,button{
@@ -37,58 +37,80 @@ button{
 <h2>Absensi Relawan MBG</h2>
 
 <select id="nama">
-  <option value="">Loading relawan...</option>
+  <option>Loading relawan...</option>
 </select>
 
-<input type="password" id="pin" placeholder="PIN">
+<input type="password"
+id="pin"
+placeholder="PIN">
 
 <button onclick="absen('Masuk')">
-  Absen Masuk
+Absen Masuk
 </button>
 
 <button onclick="absen('Pulang')">
-  Absen Pulang
+Absen Pulang
 </button>
 
 <div id="hasil"></div>
 
 <script>
 
-const url = "https://script.google.com/macros/s/AKfycbzZAtLS1xkVe_uJj2mPqMaA1syka6AcJGIJclKPcnf-nLJIQgPJ2-iaO2MQ08T1ArpsUQ/exec";
+const url =
+"https://script.google.com/macros/s/AKfycbz7SDMxpQ-Z5GxHSYsXkduxlhxvEK2lsjM5OseWfgtE6ZMooSHjtXQjTzTnf3GrFWWppg/exec";
+
 
 // ======================
-// LOAD DATA RELAWAN
+// LOAD RELAWAN
 // ======================
 
-fetch(url)
+async function loadRelawan(){
 
-.then(res => res.json())
+  try{
 
-.then(data => {
+    const response =
+      await fetch(url);
 
-  const select =
-    document.getElementById("nama");
+    const data =
+      await response.json();
 
-  select.innerHTML =
-    '<option value="">Pilih Nama</option>';
+    const select =
+      document.getElementById("nama");
 
-  data.forEach(relawan => {
+    select.innerHTML =
+      '<option value="">Pilih Nama</option>';
 
-    const option =
-      document.createElement("option");
+    data.forEach(relawan => {
 
-    option.value = relawan.nama;
+      const option =
+        document.createElement("option");
 
-    option.text =
-      relawan.nama +
-      " - " +
-      relawan.divisi;
+      option.value =
+        relawan.nama;
 
-    select.appendChild(option);
+      option.text =
+        relawan.nama +
+        " - " +
+        relawan.divisi;
 
-  });
+      select.appendChild(option);
 
-})
+    });
+
+  }
+
+  catch(error){
+
+    document.getElementById("hasil")
+      .innerHTML =
+      "Gagal load relawan";
+
+  }
+
+}
+
+loadRelawan();
+
 
 // ======================
 // ABSEN
@@ -105,57 +127,65 @@ function absen(status){
   if(!nama || !pin){
 
     alert("Nama dan PIN wajib diisi");
-
     return;
+
   }
 
   document.getElementById("hasil")
-    .innerHTML = "Mengirim data...";
+    .innerHTML =
+    "Mengirim data...";
+
 
   navigator.geolocation.getCurrentPosition(
 
-    function(position){
+    async function(position){
 
       const lokasi =
         position.coords.latitude +
         "," +
         position.coords.longitude;
 
-      fetch(url,{
+      try{
 
-        method:"POST",
+        const response =
+          await fetch(url,{
 
-        body: JSON.stringify({
-          nama:nama,
-          pin:pin,
-          status:status,
-          lokasi:lokasi
-        })
+            method:"POST",
 
-      })
+            body:JSON.stringify({
 
-      .then(res => res.text())
+              nama:nama,
+              pin:pin,
+              status:status,
+              lokasi:lokasi
 
-      .then(data => {
+            })
 
-        document.getElementById("hasil")
-          .innerHTML = data;
+          });
 
-      })
-
-      .catch(err => {
+        const hasil =
+          await response.text();
 
         document.getElementById("hasil")
-          .innerHTML = "Error koneksi";
+          .innerHTML = hasil;
 
-      });
+      }
+
+      catch(error){
+
+        document.getElementById("hasil")
+          .innerHTML =
+          "Gagal kirim data";
+
+      }
 
     },
 
     function(error){
 
       document.getElementById("hasil")
-        .innerHTML = "GPS gagal diakses";
+        .innerHTML =
+        "GPS tidak diizinkan";
 
     },
 
