@@ -167,12 +167,12 @@ Sistem Absensi Relawan Dapur
 id="pin"
 placeholder="PIN">
 
-<button onclick="absen('Masuk')">
-Absen Masuk
-</button>
+<button
+onclick="absen()"
+id="btnAbsen">
 
-<button onclick="absen('Pulang')">
-Absen Pulang
+Loading...
+
 </button>
 
 <div id="hasil"></div>
@@ -238,6 +238,65 @@ async function loadRelawan(){
 
 }
 loadRelawan();
+
+  async function updateTombol(){
+
+  const nama =
+    document.getElementById("nama").value;
+
+  const tombol =
+    document.getElementById("btnAbsen");
+
+  if(!nama){
+
+    tombol.innerHTML =
+      "Pilih Nama";
+
+    return;
+
+  }
+
+  try{
+
+    const response =
+      await fetch(
+
+        url +
+        "?cek=" +
+        encodeURIComponent(nama)
+
+      );
+
+    const hasil =
+      await response.text();
+
+    if(
+      hasil === "BELUM_PULANG"
+    ){
+
+      tombol.innerHTML =
+        "🔴 Absen Pulang";
+
+    }
+
+    else{
+
+      tombol.innerHTML =
+        "🟢 Absen Masuk";
+
+    }
+
+  }
+
+  catch(error){
+
+    tombol.innerHTML =
+      "⚠️ Error";
+
+  }
+
+}
+  
 document
 .getElementById("divisi")
 .addEventListener("change", function(){
@@ -277,7 +336,7 @@ document
 // ABSEN
 // ======================
 
-function absen(status){
+async function absen(){
 
   const nama =
     document.getElementById("nama").value;
@@ -287,21 +346,62 @@ function absen(status){
 
   if(!nama || !pin){
 
-    alert("Nama dan PIN wajib diisi");
+    alert("Lengkapi data");
+
     return;
 
   }
 
   document.getElementById("hasil")
     .innerHTML =
-    "Mengirim data...";
+    "Memproses...";
 
+
+  // ======================
+  // CEK STATUS
+  // ======================
+
+  let status = "Masuk";
+
+  try{
+
+    const response =
+      await fetch(
+
+        url +
+        "?cek=" +
+        encodeURIComponent(nama)
+
+      );
+
+    const hasil =
+      await response.text();
+
+    if(
+      hasil === "BELUM_PULANG"
+    ){
+
+      status = "Pulang";
+
+    }
+
+  }
+
+  catch(error){
+
+  }
+
+
+  // ======================
+  // GPS
+  // ======================
 
   navigator.geolocation.getCurrentPosition(
 
     async function(position){
 
       const lokasi =
+
         position.coords.latitude +
         "," +
         position.coords.longitude;
@@ -329,6 +429,8 @@ function absen(status){
 
         document.getElementById("hasil")
           .innerHTML = hasil;
+
+        updateTombol();
 
       }
 
@@ -358,6 +460,14 @@ function absen(status){
 
 }
 
+  document
+.getElementById("nama")
+.addEventListener("change", function(){
+
+  updateTombol();
+
+});
+  
 </script>
 </div>
 </body>
