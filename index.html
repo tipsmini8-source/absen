@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Absensi Relawan MBG</title>
+
+<style>
+
+body{
+  font-family: Arial;
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+select,input,button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  box-sizing:border-box;
+}
+
+button{
+  cursor:pointer;
+}
+
+#hasil{
+  margin-top:20px;
+  font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<h2>Absensi Relawan MBG</h2>
+
+<select id="nama">
+  <option value="">Loading relawan...</option>
+</select>
+
+<input type="password" id="pin" placeholder="PIN">
+
+<button onclick="absen('Masuk')">
+  Absen Masuk
+</button>
+
+<button onclick="absen('Pulang')">
+  Absen Pulang
+</button>
+
+<div id="hasil"></div>
+
+<script>
+
+const url = "https://script.google.com/macros/s/AKfycbzZAtLS1xkVe_uJj2mPqMaA1syka6AcJGIJclKPcnf-nLJIQgPJ2-iaO2MQ08T1ArpsUQ/exec";
+
+// ======================
+// LOAD DATA RELAWAN
+// ======================
+
+fetch(url)
+
+.then(res => res.json())
+
+.then(data => {
+
+  const select =
+    document.getElementById("nama");
+
+  select.innerHTML =
+    '<option value="">Pilih Nama</option>';
+
+  data.forEach(relawan => {
+
+    const option =
+      document.createElement("option");
+
+    option.value = relawan.nama;
+
+    option.text =
+      relawan.nama +
+      " - " +
+      relawan.divisi;
+
+    select.appendChild(option);
+
+  });
+
+})
+
+// ======================
+// ABSEN
+// ======================
+
+function absen(status){
+
+  const nama =
+    document.getElementById("nama").value;
+
+  const pin =
+    document.getElementById("pin").value;
+
+  if(!nama || !pin){
+
+    alert("Nama dan PIN wajib diisi");
+
+    return;
+  }
+
+  document.getElementById("hasil")
+    .innerHTML = "Mengirim data...";
+
+  navigator.geolocation.getCurrentPosition(
+
+    function(position){
+
+      const lokasi =
+        position.coords.latitude +
+        "," +
+        position.coords.longitude;
+
+      fetch(url,{
+
+        method:"POST",
+
+        body: JSON.stringify({
+          nama:nama,
+          pin:pin,
+          status:status,
+          lokasi:lokasi
+        })
+
+      })
+
+      .then(res => res.text())
+
+      .then(data => {
+
+        document.getElementById("hasil")
+          .innerHTML = data;
+
+      })
+
+      .catch(err => {
+
+        document.getElementById("hasil")
+          .innerHTML = "Error koneksi";
+
+      });
+
+    },
+
+    function(error){
+
+      document.getElementById("hasil")
+        .innerHTML = "GPS gagal diakses";
+
+    },
+
+    {
+      enableHighAccuracy:true
+    }
+
+  );
+
+}
+
+</script>
+
+</body>
+</html>
