@@ -168,18 +168,117 @@ id="pin"
 placeholder="PIN">
 
 <button
-onclick="absen()"
+onclick="fotoDanAbsen()"
 id="btnAbsen">
 
 Loading...
 
 </button>
+<div
+id="kameraBox"
 
+style="
+display:none;
+margin-top:20px;
+">
+
+<video
+id="video"
+autoplay
+playsinline
+
+style="
+width:100%;
+border-radius:14px;
+">
+</video>
+
+<button
+onclick="ambilFoto()"
+
+style="
+margin-top:10px;
+">
+
+📸 Ambil Foto
+
+</button>
+
+</div>
+
+
+<canvas
+id="canvas"
+style="display:none;">
+</canvas>
 <div id="hasil"></div>
 
 <script>
 
 const url =
+  let streamKamera = null;
+
+async function bukaKamera(){
+
+  try{
+
+    streamKamera =
+
+      await navigator
+      .mediaDevices
+      .getUserMedia({
+
+        video:{
+          facingMode:"user"
+        },
+
+        audio:false
+
+      });
+
+    document
+    .getElementById("video")
+    .srcObject =
+    streamKamera;
+
+    document
+    .getElementById("kameraBox")
+    .style.display =
+    "block";
+
+  }
+
+  catch(error){
+
+    alert(
+      "Kamera tidak diizinkan"
+    );
+
+  }
+
+}
+
+
+function tutupKamera(){
+
+  if(streamKamera){
+
+    streamKamera
+    .getTracks()
+    .forEach(track => {
+
+      track.stop();
+
+    });
+
+  }
+
+  document
+  .getElementById("kameraBox")
+  .style.display =
+  "none";
+
+}
 "https://script.google.com/macros/s/AKfycbz7SDMxpQ-Z5GxHSYsXkduxlhxvEK2lsjM5OseWfgtE6ZMooSHjtXQjTzTnf3GrFWWppg/exec";
 
 
@@ -336,7 +435,7 @@ document
 // ABSEN
 // ======================
 
-async function absen(){
+async function prosesAbsen(foto = "")
 
   const nama =
     document.getElementById("nama").value;
@@ -418,7 +517,7 @@ async function absen(){
               nama:nama,
               pin:pin,
               status:status,
-              lokasi:lokasi
+              lokasi:lokasi, foto:foto
 
             })
 
@@ -467,6 +566,68 @@ async function absen(){
   updateTombol();
 
 });
+
+async function fotoDanAbsen(){
+
+  const tombol =
+    document.getElementById("btnAbsen");
+
+  // ======================
+  // MODE PULANG
+  // ======================
+
+  if(
+    tombol.innerHTML.includes(
+      "Pulang"
+    )
+  ){
+
+    prosesAbsen();
+
+    return;
+
+  }
+
+  bukaKamera();
+
+}
+
+
+
+async function ambilFoto(){
+
+  const canvas =
+    document.getElementById("canvas");
+
+  const video =
+    document.getElementById("video");
+
+  canvas.width =
+    video.videoWidth;
+
+  canvas.height =
+    video.videoHeight;
+
+  const ctx =
+    canvas.getContext("2d");
+
+  ctx.drawImage(
+    video,
+    0,
+    0
+  );
+
+  const foto =
+    canvas.toDataURL(
+      "image/jpeg",
+      0.7
+    );
+
+  tutupKamera();
+
+  prosesAbsen(foto);
+
+}
   
 </script>
 </div>
